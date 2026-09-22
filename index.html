@@ -1,1 +1,1142 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Feliz día de las flores amarillas · Geri</title><link rel="stylesheet" href="style.css"></head><body><div id="scene"></div><div id="message"><div class="small">Feliz día de las flores amarillas</div><div class="name">Geri</div></div><div id="start"><div class="start-glow"></div><div class="start-text">TOCA PARA COMENZAR</div></div><audio id="music" loop preload="auto"><source src="https://cdn.dedicacodes.com/t/galaxia-nebulosa-flores-amarillas/1.0.0/assets/musica.mp3" type="audio/mpeg"></audio><script type="module" src="script.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Para Geri 🌻</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            touch-action: none;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #inicio {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background:
+                radial-gradient(
+                    circle at center,
+                    rgba(82, 24, 115, 0.18),
+                    rgba(0, 0, 0, 0.98) 65%
+                );
+            cursor: pointer;
+            transition: opacity 1.5s ease;
+        }
+
+        #inicio.oculto {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #inicio span {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 14px;
+            letter-spacing: 5px;
+            text-shadow:
+                0 0 10px rgba(255, 255, 255, 0.8),
+                0 0 30px rgba(190, 80, 255, 0.9);
+            animation: respirar 2.2s ease-in-out infinite;
+        }
+
+        @keyframes respirar {
+            0%, 100% {
+                opacity: 0.3;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        #mensaje {
+            position: fixed;
+            z-index: 20;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            text-align: center;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        #mensaje .principal {
+            color: white;
+            font-size: clamp(22px, 4vw, 50px);
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-shadow:
+                0 0 10px rgba(255,255,255,.9),
+                0 0 25px rgba(180,70,255,.8),
+                0 0 55px rgba(180,70,255,.5);
+        }
+
+        #mensaje .nombre {
+            margin-top: 14px;
+            color: #d8a0ff;
+            font-size: clamp(40px, 8vw, 90px);
+            font-weight: 500;
+            letter-spacing: 9px;
+            text-shadow:
+                0 0 10px white,
+                0 0 30px #b54cff,
+                0 0 70px rgba(181,76,255,.7);
+        }
+
+        @media (max-width: 600px) {
+
+            #inicio span {
+                font-size: 11px;
+                letter-spacing: 3px;
+            }
+
+            #mensaje .principal {
+                line-height: 1.35;
+                letter-spacing: 1px;
+            }
+
+            #mensaje .nombre {
+                letter-spacing: 6px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="inicio">
+        <span>TOCA PARA COMENZAR</span>
+    </div>
+
+    <div id="mensaje">
+        <div class="principal">
+            Feliz día de las flores amarillas
+        </div>
+
+        <div class="nombre">
+            Geri
+        </div>
+    </div>
+
+    <audio id="musica" loop preload="auto">
+        <source src="assets/musica.mp3" type="audio/mpeg">
+    </audio>
+
+    <canvas id="espacio"></canvas>
+
+    <script>
+        /*
+        ==========================================
+        CONFIGURACIÓN
+        ==========================================
+        */
+
+        const canvas = document.getElementById("espacio");
+        const ctx = canvas.getContext("2d");
+
+        const pantallaInicio = document.getElementById("inicio");
+        const musica = document.getElementById("musica");
+
+        let ancho = 0;
+        let alto = 0;
+
+        function ajustarCanvas() {
+
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+            ancho = window.innerWidth;
+            alto = window.innerHeight;
+
+            canvas.width = ancho * dpr;
+            canvas.height = alto * dpr;
+
+            canvas.style.width = ancho + "px";
+            canvas.style.height = alto + "px";
+
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        ajustarCanvas();
+
+        window.addEventListener("resize", ajustarCanvas);
+
+
+        /*
+        ==========================================
+        ESTADO
+        ==========================================
+        */
+
+        let iniciado = false;
+
+        let tiempo = 0;
+
+        let camaraX = 0;
+        let camaraY = 0;
+
+        let objetivoX = 0;
+        let objetivoY = 0;
+
+        let presionando = false;
+
+        let ultimoX = 0;
+        let ultimoY = 0;
+
+
+        /*
+        ==========================================
+        ESTRELLAS
+        ==========================================
+        */
+
+        const estrellas = [];
+
+        for (let i = 0; i < 900; i++) {
+
+            estrellas.push({
+
+                x: Math.random(),
+                y: Math.random(),
+
+                profundidad:
+                    Math.random() * 1.8 + 0.2,
+
+                tamaño:
+                    Math.random() * 1.7 + 0.2,
+
+                brillo:
+                    Math.random() * 0.8 + 0.2,
+
+                velocidad:
+                    Math.random() * 0.00025 + 0.00005
+
+            });
+        }
+
+
+        /*
+        ==========================================
+        FLORES
+        ==========================================
+        */
+
+        const flores = [];
+
+        for (let i = 0; i < 34; i++) {
+
+            flores.push({
+
+                x: Math.random(),
+
+                y: Math.random(),
+
+                tamaño:
+                    Math.random() * 12 + 7,
+
+                profundidad:
+                    Math.random() * 1.4 + 0.3,
+
+                rotacion:
+                    Math.random() * Math.PI * 2,
+
+                velocidad:
+                    Math.random() * 0.00035 + 0.0001,
+
+                balance:
+                    Math.random() * Math.PI * 2
+
+            });
+        }
+
+
+        /*
+        ==========================================
+        PARTÍCULAS MORADAS
+        ==========================================
+        */
+
+        const particulas = [];
+
+        for (let i = 0; i < 250; i++) {
+
+            particulas.push({
+
+                angulo:
+                    Math.random() * Math.PI * 2,
+
+                radio:
+                    180 + Math.random() * 500,
+
+                velocidad:
+                    0.0002 + Math.random() * 0.0007,
+
+                altura:
+                    Math.random() * 2 - 1,
+
+                tamaño:
+                    Math.random() * 2 + 0.3
+
+            });
+        }
+
+
+        /*
+        ==========================================
+        MOUSE
+        ==========================================
+        */
+
+        window.addEventListener("mousemove", function(e) {
+
+            if (!presionando) {
+
+                objetivoX =
+                    (e.clientX / ancho - 0.5) * 2;
+
+                objetivoY =
+                    (e.clientY / alto - 0.5) * 2;
+
+            }
+
+        });
+
+
+        /*
+        ==========================================
+        TOUCH
+        ==========================================
+        */
+
+        canvas.addEventListener("touchstart", function(e) {
+
+            if (e.touches.length === 1) {
+
+                ultimoX = e.touches[0].clientX;
+                ultimoY = e.touches[0].clientY;
+
+            }
+
+        }, { passive: true });
+
+
+        canvas.addEventListener("touchmove", function(e) {
+
+            if (e.touches.length !== 1) return;
+
+            const touch = e.touches[0];
+
+            const dx =
+                touch.clientX - ultimoX;
+
+            const dy =
+                touch.clientY - ultimoY;
+
+            objetivoX += dx * 0.003;
+            objetivoY += dy * 0.003;
+
+            objetivoX =
+                Math.max(-1, Math.min(1, objetivoX));
+
+            objetivoY =
+                Math.max(-1, Math.min(1, objetivoY));
+
+            ultimoX = touch.clientX;
+            ultimoY = touch.clientY;
+
+        }, { passive: true });
+
+
+        /*
+        ==========================================
+        DRAG CON MOUSE
+        ==========================================
+        */
+
+        canvas.addEventListener("mousedown", function(e) {
+
+            presionando = true;
+
+            ultimoX = e.clientX;
+            ultimoY = e.clientY;
+
+        });
+
+
+        window.addEventListener("mouseup", function() {
+
+            presionando = false;
+
+        });
+
+
+        window.addEventListener("mousemove", function(e) {
+
+            if (!presionando) return;
+
+            const dx =
+                e.clientX - ultimoX;
+
+            const dy =
+                e.clientY - ultimoY;
+
+            objetivoX += dx * 0.003;
+            objetivoY += dy * 0.003;
+
+            objetivoX =
+                Math.max(-1, Math.min(1, objetivoX));
+
+            objetivoY =
+                Math.max(-1, Math.min(1, objetivoY));
+
+            ultimoX = e.clientX;
+            ultimoY = e.clientY;
+
+        });
+
+
+        /*
+        ==========================================
+        INICIAR
+        ==========================================
+        */
+
+        async function iniciarExperiencia() {
+
+            if (iniciado) return;
+
+            iniciado = true;
+
+            try {
+
+                musica.volume = 0.75;
+
+                await musica.play();
+
+            } catch (error) {
+
+                console.log(
+                    "El navegador bloqueó el audio:",
+                    error
+                );
+
+            }
+
+            pantallaInicio.classList.add("oculto");
+
+            setTimeout(function() {
+
+                pantallaInicio.style.display = "none";
+
+            }, 1600);
+
+        }
+
+
+        pantallaInicio.addEventListener(
+            "click",
+            iniciarExperiencia
+        );
+
+        pantallaInicio.addEventListener(
+            "touchstart",
+            iniciarExperiencia,
+            { passive: true }
+        );
+
+
+        /*
+        ==========================================
+        FONDO
+        ==========================================
+        */
+
+        function dibujarFondo() {
+
+            const gradiente =
+                ctx.createRadialGradient(
+                    ancho * 0.5,
+                    alto * 0.5,
+                    0,
+                    ancho * 0.5,
+                    alto * 0.5,
+                    Math.max(ancho, alto) * 0.8
+                );
+
+            gradiente.addColorStop(
+                0,
+                "rgba(48,12,75,.32)"
+            );
+
+            gradiente.addColorStop(
+                0.35,
+                "rgba(24,5,45,.18)"
+            );
+
+            gradiente.addColorStop(
+                0.7,
+                "rgba(7,2,15,.1)"
+            );
+
+            gradiente.addColorStop(
+                1,
+                "rgba(0,0,0,0)"
+            );
+
+            ctx.fillStyle = gradiente;
+
+            ctx.fillRect(
+                0,
+                0,
+                ancho,
+                alto
+            );
+
+
+            /*
+            Nebulosa lateral
+            */
+
+            const nube =
+                ctx.createRadialGradient(
+                    ancho * 0.22,
+                    alto * 0.35,
+                    0,
+                    ancho * 0.22,
+                    alto * 0.35,
+                    ancho * 0.55
+                );
+
+            nube.addColorStop(
+                0,
+                "rgba(126,36,180,.12)"
+            );
+
+            nube.addColorStop(
+                0.5,
+                "rgba(72,15,120,.06)"
+            );
+
+            nube.addColorStop(
+                1,
+                "rgba(0,0,0,0)"
+            );
+
+            ctx.fillStyle = nube;
+
+            ctx.fillRect(
+                0,
+                0,
+                ancho,
+                alto
+            );
+        }
+
+
+        /*
+        ==========================================
+        ESTRELLAS
+        ==========================================
+        */
+
+        function dibujarEstrellas() {
+
+            for (const estrella of estrellas) {
+
+                estrella.y +=
+                    estrella.velocidad;
+
+                if (estrella.y > 1) {
+
+                    estrella.y = 0;
+
+                    estrella.x =
+                        Math.random();
+
+                }
+
+                let x =
+                    estrella.x * ancho;
+
+                let y =
+                    estrella.y * alto;
+
+
+                /*
+                Movimiento de cámara
+                */
+
+                x +=
+                    camaraX *
+                    80 *
+                    estrella.profundidad;
+
+                y +=
+                    camaraY *
+                    50 *
+                    estrella.profundidad;
+
+
+                /*
+                Mantener estrellas en pantalla
+                */
+
+                x =
+                    ((x % ancho) + ancho) % ancho;
+
+                y =
+                    ((y % alto) + alto) % alto;
+
+
+                const parpadeo =
+                    Math.sin(
+                        tiempo * 0.002 +
+                        estrella.x * 30
+                    ) * 0.25;
+
+
+                ctx.beginPath();
+
+                ctx.arc(
+                    x,
+                    y,
+                    estrella.tamaño,
+                    0,
+                    Math.PI * 2
+                );
+
+                ctx.fillStyle =
+                    `rgba(255,255,255,${
+                        Math.max(
+                            0.1,
+                            estrella.brillo + parpadeo
+                        )
+                    })`;
+
+                ctx.fill();
+
+            }
+        }
+
+
+        /*
+        ==========================================
+        PARTÍCULAS MORADAS
+        ==========================================
+        */
+
+        function dibujarParticulas() {
+
+            const centroX =
+                ancho / 2 +
+                camaraX * 80;
+
+            const centroY =
+                alto / 2 +
+                camaraY * 45;
+
+
+            for (const p of particulas) {
+
+                p.angulo +=
+                    p.velocidad;
+
+                const radio =
+                    p.radio;
+
+                const x =
+                    centroX +
+                    Math.cos(p.angulo) *
+                    radio;
+
+                const y =
+                    centroY +
+                    Math.sin(p.angulo) *
+                    radio *
+                    0.32 +
+                    p.altura * 80;
+
+                if (
+                    x < -20 ||
+                    x > ancho + 20 ||
+                    y < -20 ||
+                    y > alto + 20
+                ) {
+                    continue;
+                }
+
+                ctx.beginPath();
+
+                ctx.arc(
+                    x,
+                    y,
+                    p.tamaño,
+                    0,
+                    Math.PI * 2
+                );
+
+                ctx.fillStyle =
+                    "rgba(188,91,255,.55)";
+
+                ctx.fill();
+
+            }
+        }
+
+
+        /*
+        ==========================================
+        AGUJERO NEGRO
+        ==========================================
+        */
+
+        function dibujarAgujeroNegro() {
+
+            const cx =
+                ancho / 2 +
+                camaraX * 75;
+
+            const cy =
+                alto / 2 +
+                camaraY * 45;
+
+
+            /*
+            Halo exterior
+            */
+
+            const halo =
+                ctx.createRadialGradient(
+                    cx,
+                    cy,
+                    30,
+                    cx,
+                    cy,
+                    330
+                );
+
+            halo.addColorStop(
+                0,
+                "rgba(174,64,255,.28)"
+            );
+
+            halo.addColorStop(
+                0.25,
+                "rgba(112,38,180,.18)"
+            );
+
+            halo.addColorStop(
+                0.55,
+                "rgba(71,17,110,.08)"
+            );
+
+            halo.addColorStop(
+                1,
+                "rgba(0,0,0,0)"
+            );
+
+            ctx.fillStyle = halo;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                cx,
+                cy,
+                330,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+
+            /*
+            Disco de acreción
+            */
+
+            ctx.save();
+
+            ctx.translate(cx, cy);
+
+            ctx.rotate(
+                tiempo * 0.00025
+            );
+
+            ctx.scale(
+                1,
+                0.32
+            );
+
+
+            const disco =
+                ctx.createRadialGradient(
+                    0,
+                    0,
+                    20,
+                    0,
+                    0,
+                    240
+                );
+
+            disco.addColorStop(
+                0,
+                "rgba(0,0,0,1)"
+            );
+
+            disco.addColorStop(
+                0.28,
+                "rgba(255,170,70,.8)"
+            );
+
+            disco.addColorStop(
+                0.45,
+                "rgba(183,69,255,.65)"
+            );
+
+            disco.addColorStop(
+                0.68,
+                "rgba(89,26,140,.22)"
+            );
+
+            disco.addColorStop(
+                1,
+                "rgba(0,0,0,0)"
+            );
+
+            ctx.fillStyle = disco;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                0,
+                0,
+                240,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+            ctx.restore();
+
+
+            /*
+            Núcleo
+            */
+
+            const negro =
+                ctx.createRadialGradient(
+                    cx - 15,
+                    cy - 15,
+                    0,
+                    cx,
+                    cy,
+                    125
+                );
+
+            negro.addColorStop(
+                0,
+                "#000000"
+            );
+
+            negro.addColorStop(
+                0.7,
+                "#000000"
+            );
+
+            negro.addColorStop(
+                0.9,
+                "rgba(0,0,0,.96)"
+            );
+
+            negro.addColorStop(
+                1,
+                "rgba(0,0,0,0)"
+            );
+
+            ctx.fillStyle = negro;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                cx,
+                cy,
+                125,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+
+            /*
+            Anillo morado
+            */
+
+            ctx.beginPath();
+
+            ctx.arc(
+                cx,
+                cy,
+                110,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.strokeStyle =
+                "rgba(192,91,255,.25)";
+
+            ctx.lineWidth = 2;
+
+            ctx.shadowBlur = 25;
+
+            ctx.shadowColor =
+                "rgba(181,76,255,.7)";
+
+            ctx.stroke();
+
+            ctx.shadowBlur = 0;
+
+        }
+
+
+        /*
+        ==========================================
+        FLORES
+        ==========================================
+        */
+
+        function dibujarFlor(flor) {
+
+            flor.y -=
+                flor.velocidad;
+
+            if (flor.y < -0.15) {
+
+                flor.y = 1.15;
+
+                flor.x =
+                    Math.random();
+
+            }
+
+
+            const movimientoX =
+                Math.sin(
+                    tiempo * 0.001 +
+                    flor.balance
+                ) * 18;
+
+            const movimientoY =
+                Math.cos(
+                    tiempo * 0.0012 +
+                    flor.balance
+                ) * 12;
+
+
+            let x =
+                flor.x * ancho +
+                movimientoX +
+                camaraX *
+                100 *
+                flor.profundidad;
+
+            let y =
+                flor.y * alto +
+                movimientoY +
+                camaraY *
+                70 *
+                flor.profundidad;
+
+
+            /*
+            Si está fuera de pantalla
+            no dibujamos
+            */
+
+            if (
+                x < -100 ||
+                x > ancho + 100 ||
+                y < -100 ||
+                y > alto + 100
+            ) {
+                return;
+            }
+
+
+            ctx.save();
+
+            ctx.translate(
+                x,
+                y
+            );
+
+            ctx.rotate(
+                flor.rotacion +
+                tiempo * 0.0002
+            );
+
+
+            /*
+            Pétalos
+            */
+
+            for (let i = 0; i < 6; i++) {
+
+                ctx.rotate(
+                    Math.PI / 3
+                );
+
+                ctx.beginPath();
+
+                ctx.ellipse(
+                    0,
+                    flor.tamaño * 0.72,
+                    flor.tamaño * 0.42,
+                    flor.tamaño,
+                    0,
+                    0,
+                    Math.PI * 2
+                );
+
+                ctx.fillStyle =
+                    "rgba(255,210,25,.9)";
+
+                ctx.shadowBlur = 18;
+
+                ctx.shadowColor =
+                    "rgba(255,190,0,.8)";
+
+                ctx.fill();
+
+            }
+
+
+            /*
+            Centro
+            */
+
+            ctx.shadowBlur = 5;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                0,
+                0,
+                flor.tamaño * 0.32,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fillStyle =
+                "#8a5200";
+
+            ctx.fill();
+
+
+            ctx.restore();
+
+        }
+
+
+        /*
+        ==========================================
+        ANIMACIÓN
+        ==========================================
+        */
+
+        function animar() {
+
+            tiempo =
+                performance.now();
+
+
+            /*
+            Movimiento suave
+            */
+
+            camaraX +=
+                (objetivoX - camaraX) *
+                0.035;
+
+            camaraY +=
+                (objetivoY - camaraY) *
+                0.035;
+
+
+            /*
+            Fondo negro
+            */
+
+            ctx.fillStyle = "#000000";
+
+            ctx.fillRect(
+                0,
+                0,
+                ancho,
+                alto
+            );
+
+
+            dibujarFondo();
+
+            dibujarEstrellas();
+
+            dibujarParticulas();
+
+            dibujarAgujeroNegro();
+
+
+            /*
+            Flores
+            */
+
+            for (const flor of flores) {
+
+                dibujarFlor(flor);
+
+            }
+
+
+            requestAnimationFrame(
+                animar
+            );
+        }
+
+
+        /*
+        ==========================================
+        INICIAR ANIMACIÓN
+        ==========================================
+        */
+
+        animar();
+
+    </script>
+
+</body>
+</html>
