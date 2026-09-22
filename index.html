@@ -1,1142 +1,1620 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Para Geri 🌻</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Para Geri 🌻</title>
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<style>
 
-        html,
-        body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: #000;
-        }
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
 
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            touch-action: none;
-        }
+html,
+body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#000;
+}
 
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
+body{
+    font-family:Arial,Helvetica,sans-serif;
+    touch-action:none;
+    cursor:grab;
+}
 
-        #inicio {
-            position: fixed;
-            inset: 0;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background:
-                radial-gradient(
-                    circle at center,
-                    rgba(82, 24, 115, 0.18),
-                    rgba(0, 0, 0, 0.98) 65%
-                );
-            cursor: pointer;
-            transition: opacity 1.5s ease;
-        }
+body.dragging{
+    cursor:grabbing;
+}
 
-        #inicio.oculto {
-            opacity: 0;
-            pointer-events: none;
-        }
+canvas{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    display:block;
+}
 
-        #inicio span {
-            color: rgba(255, 255, 255, 0.85);
-            font-size: 14px;
-            letter-spacing: 5px;
-            text-shadow:
-                0 0 10px rgba(255, 255, 255, 0.8),
-                0 0 30px rgba(190, 80, 255, 0.9);
-            animation: respirar 2.2s ease-in-out infinite;
-        }
+/* =========================
+   PANTALLA DE INICIO
+========================= */
 
-        @keyframes respirar {
-            0%, 100% {
-                opacity: 0.3;
-            }
+#inicio{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(100,25,150,.18),
+            rgba(0,0,0,.97) 65%
+        );
+    cursor:pointer;
+    transition:
+        opacity 1.8s ease,
+        visibility 1.8s ease;
+}
 
-            50% {
-                opacity: 1;
-            }
-        }
+#inicio.oculto{
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+}
 
-        #mensaje {
-            position: fixed;
-            z-index: 20;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            text-align: center;
-            pointer-events: none;
-            user-select: none;
-        }
+.inicio-contenido{
+    text-align:center;
+    animation:entrada 2.5s ease forwards;
+}
 
-        #mensaje .principal {
-            color: white;
-            font-size: clamp(22px, 4vw, 50px);
-            font-weight: 300;
-            letter-spacing: 3px;
-            text-shadow:
-                0 0 10px rgba(255,255,255,.9),
-                0 0 25px rgba(180,70,255,.8),
-                0 0 55px rgba(180,70,255,.5);
-        }
+.inicio-luz{
+    position:absolute;
+    width:280px;
+    height:280px;
+    border-radius:50%;
+    background:rgba(156,55,255,.08);
+    filter:blur(70px);
+    pointer-events:none;
+}
 
-        #mensaje .nombre {
-            margin-top: 14px;
-            color: #d8a0ff;
-            font-size: clamp(40px, 8vw, 90px);
-            font-weight: 500;
-            letter-spacing: 9px;
-            text-shadow:
-                0 0 10px white,
-                0 0 30px #b54cff,
-                0 0 70px rgba(181,76,255,.7);
-        }
+.inicio-texto{
+    position:relative;
+    color:rgba(255,255,255,.88);
+    font-size:13px;
+    letter-spacing:7px;
+    text-transform:uppercase;
+    text-shadow:
+        0 0 10px rgba(255,255,255,.8),
+        0 0 30px rgba(185,75,255,.8);
+    animation:respirar 2.4s ease-in-out infinite;
+}
 
-        @media (max-width: 600px) {
+.inicio-sub{
+    position:relative;
+    margin-top:16px;
+    color:rgba(213,170,255,.6);
+    font-size:10px;
+    letter-spacing:3px;
+}
 
-            #inicio span {
-                font-size: 11px;
-                letter-spacing: 3px;
-            }
+@keyframes respirar{
+    0%,100%{
+        opacity:.35;
+    }
 
-            #mensaje .principal {
-                line-height: 1.35;
-                letter-spacing: 1px;
-            }
+    50%{
+        opacity:1;
+    }
+}
 
-            #mensaje .nombre {
-                letter-spacing: 6px;
-            }
-        }
-    </style>
+@keyframes entrada{
+    from{
+        opacity:0;
+        transform:scale(.92);
+    }
+
+    to{
+        opacity:1;
+        transform:scale(1);
+    }
+}
+
+/* =========================
+   MENSAJE
+========================= */
+
+#mensaje{
+    position:fixed;
+    z-index:30;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:92%;
+    text-align:center;
+    pointer-events:none;
+    user-select:none;
+}
+
+.principal{
+    color:#fff;
+    font-size:clamp(23px,4vw,55px);
+    font-weight:300;
+    letter-spacing:3px;
+
+    text-shadow:
+        0 0 8px rgba(255,255,255,.95),
+        0 0 20px rgba(177,72,255,.9),
+        0 0 50px rgba(177,72,255,.65);
+
+    animation:
+        textoEntrada 3s ease,
+        textoRespira 5s ease-in-out infinite;
+}
+
+.nombre{
+    margin-top:14px;
+
+    color:#d9a3ff;
+
+    font-size:clamp(48px,9vw,105px);
+    font-weight:500;
+
+    letter-spacing:10px;
+
+    text-shadow:
+        0 0 8px #fff,
+        0 0 20px #c266ff,
+        0 0 45px #a83dff,
+        0 0 90px rgba(168,61,255,.7);
+
+    animation:
+        nombreEntrada 4s ease,
+        nombreRespira 4s ease-in-out infinite;
+}
+
+@keyframes textoEntrada{
+    from{
+        opacity:0;
+        transform:translateY(20px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+
+@keyframes nombreEntrada{
+    from{
+        opacity:0;
+        transform:scale(.7);
+        filter:blur(12px);
+    }
+
+    to{
+        opacity:1;
+        transform:scale(1);
+        filter:blur(0);
+    }
+}
+
+@keyframes textoRespira{
+    0%,100%{
+        opacity:.85;
+    }
+
+    50%{
+        opacity:1;
+    }
+}
+
+@keyframes nombreRespira{
+    0%,100%{
+        text-shadow:
+            0 0 8px #fff,
+            0 0 20px #c266ff,
+            0 0 45px #a83dff;
+    }
+
+    50%{
+        text-shadow:
+            0 0 12px #fff,
+            0 0 30px #d27cff,
+            0 0 65px #a83dff,
+            0 0 100px rgba(168,61,255,.8);
+    }
+}
+
+/* =========================
+   INDICADOR
+========================= */
+
+#instruccion{
+    position:fixed;
+    z-index:25;
+    bottom:30px;
+    left:50%;
+    transform:translateX(-50%);
+
+    color:rgba(255,255,255,.35);
+
+    font-size:10px;
+    letter-spacing:3px;
+
+    text-align:center;
+
+    opacity:0;
+    transition:opacity 2s ease;
+
+    pointer-events:none;
+}
+
+#instruccion.visible{
+    opacity:1;
+}
+
+/* =========================
+   BOTÓN MÚSICA
+========================= */
+
+#musicaBoton{
+    position:fixed;
+    z-index:40;
+
+    right:22px;
+    bottom:22px;
+
+    width:42px;
+    height:42px;
+
+    border:1px solid rgba(210,150,255,.35);
+
+    border-radius:50%;
+
+    background:rgba(10,4,18,.55);
+
+    backdrop-filter:blur(8px);
+
+    color:#e5b8ff;
+
+    font-size:16px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    cursor:pointer;
+
+    opacity:0;
+    pointer-events:none;
+
+    transition:
+        opacity .8s ease,
+        transform .2s ease,
+        background .2s ease;
+}
+
+#musicaBoton.visible{
+    opacity:1;
+    pointer-events:auto;
+}
+
+#musicaBoton:hover{
+    transform:scale(1.1);
+    background:rgba(70,20,100,.55);
+}
+
+@media(max-width:600px){
+
+    .inicio-texto{
+        font-size:10px;
+        letter-spacing:4px;
+    }
+
+    .inicio-sub{
+        font-size:8px;
+    }
+
+    .principal{
+        line-height:1.35;
+        letter-spacing:1px;
+    }
+
+    .nombre{
+        letter-spacing:6px;
+    }
+
+    #instruccion{
+        bottom:20px;
+        font-size:8px;
+        letter-spacing:2px;
+    }
+
+}
+
+</style>
 </head>
 
 <body>
 
-    <div id="inicio">
-        <span>TOCA PARA COMENZAR</span>
-    </div>
+<canvas id="espacio"></canvas>
 
-    <div id="mensaje">
-        <div class="principal">
-            Feliz día de las flores amarillas
+<!-- PANTALLA INICIAL -->
+
+<div id="inicio">
+
+    <div class="inicio-luz"></div>
+
+    <div class="inicio-contenido">
+
+        <div class="inicio-texto">
+            TOCA PARA COMENZAR
         </div>
 
-        <div class="nombre">
-            Geri
+        <div class="inicio-sub">
+            una pequeña sorpresa para ti
         </div>
+
     </div>
 
-    <audio id="musica" loop preload="auto">
-        <source src="assets/musica.mp3" type="audio/mpeg">
-    </audio>
+</div>
 
-    <canvas id="espacio"></canvas>
 
-    <script>
-        /*
-        ==========================================
-        CONFIGURACIÓN
-        ==========================================
-        */
+<!-- TEXTO PRINCIPAL -->
 
-        const canvas = document.getElementById("espacio");
-        const ctx = canvas.getContext("2d");
+<div id="mensaje">
 
-        const pantallaInicio = document.getElementById("inicio");
-        const musica = document.getElementById("musica");
+    <div class="principal">
+        Feliz día de las flores amarillas
+    </div>
 
-        let ancho = 0;
-        let alto = 0;
+    <div class="nombre">
+        Geri
+    </div>
 
-        function ajustarCanvas() {
+</div>
 
-            const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-            ancho = window.innerWidth;
-            alto = window.innerHeight;
+<!-- INSTRUCCIÓN -->
 
-            canvas.width = ancho * dpr;
-            canvas.height = alto * dpr;
+<div id="instruccion">
+    MUEVE EL CURSOR · ARRASTRA PARA EXPLORAR
+</div>
 
-            canvas.style.width = ancho + "px";
-            canvas.style.height = alto + "px";
 
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+<!-- BOTÓN MÚSICA -->
+
+<button id="musicaBoton" aria-label="Controlar música">
+    ♪
+</button>
+
+
+<!-- MÚSICA -->
+
+<audio
+    id="musica"
+    loop
+    preload="auto"
+    playsinline
+>
+    <source src="assets/musica.mp3" type="audio/mpeg">
+</audio>
+
+
+<script>
+
+/* =========================================================
+   CONFIGURACIÓN
+========================================================= */
+
+const canvas = document.getElementById("espacio");
+const ctx = canvas.getContext("2d");
+
+const inicio = document.getElementById("inicio");
+const musica = document.getElementById("musica");
+const musicaBoton = document.getElementById("musicaBoton");
+const instruccion = document.getElementById("instruccion");
+
+let W = 0;
+let H = 0;
+let DPR = 1;
+
+let iniciado = false;
+let musicaActiva = false;
+
+let tiempo = 0;
+
+
+/* =========================================================
+   CÁMARA
+========================================================= */
+
+let camX = 0;
+let camY = 0;
+
+let targetCamX = 0;
+let targetCamY = 0;
+
+let drag = false;
+
+let lastX = 0;
+let lastY = 0;
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+function resize(){
+
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+    W = window.innerWidth;
+    H = window.innerHeight;
+
+    canvas.width = W * DPR;
+    canvas.height = H * DPR;
+
+    canvas.style.width = W + "px";
+    canvas.style.height = H + "px";
+
+    ctx.setTransform(
+        DPR,
+        0,
+        0,
+        DPR,
+        0,
+        0
+    );
+}
+
+resize();
+
+window.addEventListener("resize", resize);
+
+
+/* =========================================================
+   UTILIDADES
+========================================================= */
+
+function random(min,max){
+    return Math.random() * (max-min) + min;
+}
+
+function clamp(value,min,max){
+    return Math.max(min,Math.min(max,value));
+}
+
+
+/* =========================================================
+   ESTRELLAS
+========================================================= */
+
+const estrellas = [];
+
+for(let i=0;i<1300;i++){
+
+    estrellas.push({
+
+        x:random(-1,1),
+        y:random(-1,1),
+
+        z:random(.05,1),
+
+        size:random(.3,1.8),
+
+        brightness:random(.25,1),
+
+        twinkle:random(0,Math.PI*2),
+
+        speed:random(.00002,.00012)
+
+    });
+
+}
+
+
+/* =========================================================
+   ESTRELLAS GRANDES
+========================================================= */
+
+const estrellasGrandes = [];
+
+for(let i=0;i<80;i++){
+
+    estrellasGrandes.push({
+
+        x:random(-1,1),
+        y:random(-1,1),
+
+        z:random(.15,1),
+
+        size:random(1,3),
+
+        phase:random(0,Math.PI*2)
+
+    });
+
+}
+
+
+/* =========================================================
+   NEBULOSA
+========================================================= */
+
+const nebulosa = [];
+
+for(let i=0;i<18;i++){
+
+    nebulosa.push({
+
+        x:random(-.9,.9),
+        y:random(-.8,.8),
+
+        size:random(100,350),
+
+        alpha:random(.015,.05),
+
+        rotation:random(0,Math.PI*2),
+
+        drift:random(.0001,.0004)
+
+    });
+
+}
+
+
+/* =========================================================
+   PARTÍCULAS DEL AGUJERO NEGRO
+========================================================= */
+
+const particulas = [];
+
+for(let i=0;i<500;i++){
+
+    particulas.push({
+
+        angle:random(0,Math.PI*2),
+
+        radius:random(125,500),
+
+        speed:random(.00015,.0008),
+
+        y:random(-1,1),
+
+        size:random(.4,2),
+
+        brightness:random(.2,.9)
+
+    });
+
+}
+
+
+/* =========================================================
+   FLORES
+========================================================= */
+
+const flores = [];
+
+for(let i=0;i<42;i++){
+
+    flores.push({
+
+        x:random(-.1,1.1),
+        y:random(-.1,1.1),
+
+        z:random(.15,1),
+
+        size:random(7,19),
+
+        rotation:random(0,Math.PI*2),
+
+        rotationSpeed:random(-.001,.001),
+
+        speed:random(.00008,.0003),
+
+        sway:random(0,Math.PI*2),
+
+        type:Math.random()
+
+    });
+
+}
+
+
+/* =========================================================
+   POLVO MORADO
+========================================================= */
+
+const polvo = [];
+
+for(let i=0;i<180;i++){
+
+    polvo.push({
+
+        angle:random(0,Math.PI*2),
+
+        radius:random(180,650),
+
+        speed:random(.00005,.0003),
+
+        size:random(.5,2.5),
+
+        alpha:random(.1,.7)
+
+    });
+
+}
+
+
+/* =========================================================
+   MOVIMIENTO DEL MOUSE
+========================================================= */
+
+window.addEventListener("mousemove",e=>{
+
+    if(drag) return;
+
+    targetCamX =
+        (e.clientX / W - .5) * 2;
+
+    targetCamY =
+        (e.clientY / H - .5) * 2;
+
+});
+
+
+/* =========================================================
+   ARRASTRAR CON MOUSE
+========================================================= */
+
+canvas.addEventListener("mousedown",e=>{
+
+    drag = true;
+
+    document.body.classList.add("dragging");
+
+    lastX = e.clientX;
+    lastY = e.clientY;
+
+});
+
+
+window.addEventListener("mouseup",()=>{
+
+    drag = false;
+
+    document.body.classList.remove("dragging");
+
+});
+
+
+window.addEventListener("mousemove",e=>{
+
+    if(!drag) return;
+
+    const dx = e.clientX-lastX;
+    const dy = e.clientY-lastY;
+
+    targetCamX += dx*.004;
+    targetCamY += dy*.004;
+
+    targetCamX = clamp(targetCamX,-1.5,1.5);
+    targetCamY = clamp(targetCamY,-1.5,1.5);
+
+    lastX = e.clientX;
+    lastY = e.clientY;
+
+});
+
+
+/* =========================================================
+   TOUCH
+========================================================= */
+
+canvas.addEventListener("touchstart",e=>{
+
+    if(e.touches.length !== 1) return;
+
+    drag = true;
+
+    lastX = e.touches[0].clientX;
+    lastY = e.touches[0].clientY;
+
+},{passive:true});
+
+
+canvas.addEventListener("touchmove",e=>{
+
+    if(e.touches.length !== 1) return;
+
+    const touch = e.touches[0];
+
+    const dx = touch.clientX-lastX;
+    const dy = touch.clientY-lastY;
+
+    targetCamX += dx*.004;
+    targetCamY += dy*.004;
+
+    targetCamX = clamp(targetCamX,-1.5,1.5);
+    targetCamY = clamp(targetCamY,-1.5,1.5);
+
+    lastX = touch.clientX;
+    lastY = touch.clientY;
+
+},{passive:true});
+
+
+canvas.addEventListener("touchend",()=>{
+
+    drag = false;
+
+});
+
+
+/* =========================================================
+   DIBUJAR NEBULOSA
+========================================================= */
+
+function dibujarNebulosa(){
+
+    for(const nube of nebulosa){
+
+        nube.rotation += nube.drift;
+
+        const x =
+            W*.5 +
+            nube.x*W +
+            camX*80;
+
+        const y =
+            H*.5 +
+            nube.y*H +
+            camY*60;
+
+        const grad =
+            ctx.createRadialGradient(
+                x,
+                y,
+                0,
+                x,
+                y,
+                nube.size
+            );
+
+        grad.addColorStop(
+            0,
+            `rgba(160,55,230,${nube.alpha})`
+        );
+
+        grad.addColorStop(
+            .4,
+            `rgba(100,25,180,${nube.alpha*.5})`
+        );
+
+        grad.addColorStop(
+            1,
+            "rgba(0,0,0,0)"
+        );
+
+        ctx.fillStyle = grad;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            y,
+            nube.size,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fill();
+
+    }
+
+}
+
+
+/* =========================================================
+   ESTRELLAS
+========================================================= */
+
+function dibujarEstrellas(){
+
+    for(const estrella of estrellas){
+
+        estrella.y += estrella.speed;
+
+        if(estrella.y>1.2){
+            estrella.y=-1.2;
         }
 
-        ajustarCanvas();
+        const perspective =
+            1 / estrella.z;
 
-        window.addEventListener("resize", ajustarCanvas);
+        let x =
+            W/2 +
+            estrella.x*W*.9*perspective +
+            camX*100*perspective;
 
+        let y =
+            H/2 +
+            estrella.y*H*.9*perspective +
+            camY*70*perspective;
 
-        /*
-        ==========================================
-        ESTADO
-        ==========================================
-        */
+        x =
+            ((x%W)+W)%W;
 
-        let iniciado = false;
+        y =
+            ((y%H)+H)%H;
 
-        let tiempo = 0;
+        const pulse =
+            Math.sin(
+                tiempo*.002+
+                estrella.twinkle
+            )*.25;
 
-        let camaraX = 0;
-        let camaraY = 0;
+        const alpha =
+            clamp(
+                estrella.brightness+pulse,
+                .05,
+                1
+            );
 
-        let objetivoX = 0;
-        let objetivoY = 0;
+        const size =
+            estrella.size *
+            (.4+perspective*.3);
 
-        let presionando = false;
+        ctx.beginPath();
 
-        let ultimoX = 0;
-        let ultimoY = 0;
+        ctx.arc(
+            x,
+            y,
+            size,
+            0,
+            Math.PI*2
+        );
 
+        ctx.fillStyle =
+            `rgba(255,255,255,${alpha})`;
 
-        /*
-        ==========================================
-        ESTRELLAS
-        ==========================================
-        */
+        ctx.fill();
 
-        const estrellas = [];
+    }
 
-        for (let i = 0; i < 900; i++) {
 
-            estrellas.push({
+    for(const estrella of estrellasGrandes){
 
-                x: Math.random(),
-                y: Math.random(),
+        const perspective =
+            1/estrella.z;
 
-                profundidad:
-                    Math.random() * 1.8 + 0.2,
+        let x =
+            W/2+
+            estrella.x*W*.85*perspective+
+            camX*120*perspective;
 
-                tamaño:
-                    Math.random() * 1.7 + 0.2,
+        let y =
+            H/2+
+            estrella.y*H*.85*perspective+
+            camY*80*perspective;
 
-                brillo:
-                    Math.random() * 0.8 + 0.2,
+        x=((x%W)+W)%W;
+        y=((y%H)+H)%H;
 
-                velocidad:
-                    Math.random() * 0.00025 + 0.00005
+        const glow =
+            .5+
+            Math.sin(
+                tiempo*.002+
+                estrella.phase
+            )*.5;
 
-            });
-        }
+        ctx.shadowBlur = 12;
 
+        ctx.shadowColor =
+            "rgba(255,255,255,.8)";
 
-        /*
-        ==========================================
-        FLORES
-        ==========================================
-        */
+        ctx.beginPath();
 
-        const flores = [];
+        ctx.arc(
+            x,
+            y,
+            estrella.size*perspective*.45,
+            0,
+            Math.PI*2
+        );
 
-        for (let i = 0; i < 34; i++) {
+        ctx.fillStyle =
+            `rgba(255,255,255,${glow})`;
 
-            flores.push({
+        ctx.fill();
 
-                x: Math.random(),
+        ctx.shadowBlur=0;
 
-                y: Math.random(),
+    }
 
-                tamaño:
-                    Math.random() * 12 + 7,
+}
 
-                profundidad:
-                    Math.random() * 1.4 + 0.3,
 
-                rotacion:
-                    Math.random() * Math.PI * 2,
+/* =========================================================
+   POLVO MORADO
+========================================================= */
 
-                velocidad:
-                    Math.random() * 0.00035 + 0.0001,
+function dibujarPolvo(){
 
-                balance:
-                    Math.random() * Math.PI * 2
+    const cx =
+        W/2+
+        camX*70;
 
-            });
-        }
+    const cy =
+        H/2+
+        camY*40;
 
+    for(const p of polvo){
 
-        /*
-        ==========================================
-        PARTÍCULAS MORADAS
-        ==========================================
-        */
+        p.angle += p.speed;
 
-        const particulas = [];
+        const x =
+            cx+
+            Math.cos(p.angle)*p.radius;
 
-        for (let i = 0; i < 250; i++) {
+        const y =
+            cy+
+            Math.sin(p.angle)*p.radius*.35;
 
-            particulas.push({
+        if(
+            x<-20 ||
+            x>W+20 ||
+            y<-20 ||
+            y>H+20
+        ) continue;
 
-                angulo:
-                    Math.random() * Math.PI * 2,
+        ctx.beginPath();
 
-                radio:
-                    180 + Math.random() * 500,
+        ctx.arc(
+            x,
+            y,
+            p.size,
+            0,
+            Math.PI*2
+        );
 
-                velocidad:
-                    0.0002 + Math.random() * 0.0007,
+        ctx.fillStyle =
+            `rgba(190,85,255,${p.alpha})`;
 
-                altura:
-                    Math.random() * 2 - 1,
+        ctx.fill();
 
-                tamaño:
-                    Math.random() * 2 + 0.3
+    }
 
-            });
-        }
+}
 
 
-        /*
-        ==========================================
-        MOUSE
-        ==========================================
-        */
+/* =========================================================
+   AGUJERO NEGRO
+========================================================= */
 
-        window.addEventListener("mousemove", function(e) {
+function dibujarAgujeroNegro(){
 
-            if (!presionando) {
+    const cx =
+        W/2+
+        camX*85;
 
-                objetivoX =
-                    (e.clientX / ancho - 0.5) * 2;
+    const cy =
+        H/2+
+        camY*50;
 
-                objetivoY =
-                    (e.clientY / alto - 0.5) * 2;
 
-            }
+    /* HALO */
 
-        });
+    const halo =
+        ctx.createRadialGradient(
+            cx,
+            cy,
+            20,
+            cx,
+            cy,
+            390
+        );
 
+    halo.addColorStop(
+        0,
+        "rgba(190,70,255,.25)"
+    );
 
-        /*
-        ==========================================
-        TOUCH
-        ==========================================
-        */
+    halo.addColorStop(
+        .25,
+        "rgba(130,35,210,.17)"
+    );
 
-        canvas.addEventListener("touchstart", function(e) {
+    halo.addColorStop(
+        .55,
+        "rgba(80,20,130,.07)"
+    );
 
-            if (e.touches.length === 1) {
+    halo.addColorStop(
+        1,
+        "rgba(0,0,0,0)"
+    );
 
-                ultimoX = e.touches[0].clientX;
-                ultimoY = e.touches[0].clientY;
+    ctx.fillStyle=halo;
 
-            }
+    ctx.beginPath();
 
-        }, { passive: true });
+    ctx.arc(
+        cx,
+        cy,
+        390,
+        0,
+        Math.PI*2
+    );
 
+    ctx.fill();
 
-        canvas.addEventListener("touchmove", function(e) {
 
-            if (e.touches.length !== 1) return;
+    /* DISCO DE ACRECIÓN */
 
-            const touch = e.touches[0];
+    ctx.save();
 
-            const dx =
-                touch.clientX - ultimoX;
+    ctx.translate(cx,cy);
 
-            const dy =
-                touch.clientY - ultimoY;
+    ctx.rotate(
+        tiempo*.00012
+    );
 
-            objetivoX += dx * 0.003;
-            objetivoY += dy * 0.003;
+    ctx.scale(1,.31);
 
-            objetivoX =
-                Math.max(-1, Math.min(1, objetivoX));
 
-            objetivoY =
-                Math.max(-1, Math.min(1, objetivoY));
+    const disco =
+        ctx.createRadialGradient(
+            0,
+            0,
+            30,
+            0,
+            0,
+            300
+        );
 
-            ultimoX = touch.clientX;
-            ultimoY = touch.clientY;
+    disco.addColorStop(
+        0,
+        "#000"
+    );
 
-        }, { passive: true });
+    disco.addColorStop(
+        .20,
+        "rgba(255,185,65,.95)"
+    );
 
+    disco.addColorStop(
+        .30,
+        "rgba(255,110,30,.8)"
+    );
 
-        /*
-        ==========================================
-        DRAG CON MOUSE
-        ==========================================
-        */
+    disco.addColorStop(
+        .43,
+        "rgba(200,70,255,.85)"
+    );
 
-        canvas.addEventListener("mousedown", function(e) {
+    disco.addColorStop(
+        .62,
+        "rgba(100,25,160,.35)"
+    );
 
-            presionando = true;
+    disco.addColorStop(
+        .82,
+        "rgba(50,10,80,.08)"
+    );
 
-            ultimoX = e.clientX;
-            ultimoY = e.clientY;
+    disco.addColorStop(
+        1,
+        "rgba(0,0,0,0)"
+    );
 
-        });
+    ctx.fillStyle=disco;
 
+    ctx.beginPath();
 
-        window.addEventListener("mouseup", function() {
+    ctx.arc(
+        0,
+        0,
+        300,
+        0,
+        Math.PI*2
+    );
 
-            presionando = false;
+    ctx.fill();
 
-        });
 
+    /* ANILLO EXTERIOR */
 
-        window.addEventListener("mousemove", function(e) {
+    ctx.strokeStyle =
+        "rgba(220,105,255,.25)";
 
-            if (!presionando) return;
+    ctx.lineWidth=3;
 
-            const dx =
-                e.clientX - ultimoX;
+    ctx.shadowBlur=25;
 
-            const dy =
-                e.clientY - ultimoY;
+    ctx.shadowColor=
+        "rgba(205,80,255,.7)";
 
-            objetivoX += dx * 0.003;
-            objetivoY += dy * 0.003;
+    ctx.beginPath();
 
-            objetivoX =
-                Math.max(-1, Math.min(1, objetivoX));
+    ctx.ellipse(
+        0,
+        0,
+        245,
+        245,
+        0,
+        0,
+        Math.PI*2
+    );
 
-            objetivoY =
-                Math.max(-1, Math.min(1, objetivoY));
+    ctx.stroke();
 
-            ultimoX = e.clientX;
-            ultimoY = e.clientY;
+    ctx.restore();
 
-        });
 
+    /* PARTÍCULAS */
 
-        /*
-        ==========================================
-        INICIAR
-        ==========================================
-        */
+    for(const p of particulas){
 
-        async function iniciarExperiencia() {
+        p.angle += p.speed;
 
-            if (iniciado) return;
+        const radius =
+            p.radius;
 
-            iniciado = true;
+        const x =
+            cx+
+            Math.cos(p.angle)*radius;
 
-            try {
+        const y =
+            cy+
+            Math.sin(p.angle)*radius*.32+
+            p.y*40;
 
-                musica.volume = 0.75;
+        if(
+            x<-30 ||
+            x>W+30 ||
+            y<-30 ||
+            y>H+30
+        ) continue;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            y,
+            p.size,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fillStyle =
+            `rgba(208,108,255,${p.brightness})`;
+
+        ctx.fill();
+
+    }
+
+
+    /* HORIZONTE DE EVENTOS */
+
+    const negro =
+        ctx.createRadialGradient(
+            cx-25,
+            cy-25,
+            0,
+            cx,
+            cy,
+            145
+        );
+
+    negro.addColorStop(
+        0,
+        "#000000"
+    );
+
+    negro.addColorStop(
+        .70,
+        "#000000"
+    );
+
+    negro.addColorStop(
+        .90,
+        "rgba(0,0,0,.98)"
+    );
+
+    negro.addColorStop(
+        1,
+        "rgba(0,0,0,0)"
+    );
+
+    ctx.fillStyle=negro;
+
+    ctx.beginPath();
+
+    ctx.arc(
+        cx,
+        cy,
+        145,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fill();
+
+
+    /* BORDE */
+
+    ctx.save();
+
+    ctx.shadowBlur=28;
+
+    ctx.shadowColor=
+        "rgba(186,65,255,.8)";
+
+    ctx.strokeStyle=
+        "rgba(214,120,255,.28)";
+
+    ctx.lineWidth=2;
+
+    ctx.beginPath();
+
+    ctx.arc(
+        cx,
+        cy,
+        112,
+        0,
+        Math.PI*2
+    );
+
+    ctx.stroke();
+
+    ctx.restore();
+
+}
+
+
+/* =========================================================
+   FLORES AMARILLAS
+========================================================= */
+
+function dibujarFlor(flor){
+
+    flor.y -= flor.speed;
+
+    flor.rotation +=
+        flor.rotationSpeed;
+
+    if(flor.y < -.15){
+
+        flor.y=1.15;
+
+        flor.x=random(-.1,1.1);
+
+    }
+
+
+    const sway =
+        Math.sin(
+            tiempo*.001+
+            flor.sway
+        )*18*flor.z;
+
+
+    const depth =
+        .5+
+        flor.z*.8;
+
+
+    const x =
+        flor.x*W+
+        sway+
+        camX*120*flor.z;
+
+
+    const y =
+        flor.y*H+
+        Math.cos(
+            tiempo*.0012+
+            flor.sway
+        )*10+
+        camY*80*flor.z;
+
+
+    if(
+        x<-100 ||
+        x>W+100 ||
+        y<-100 ||
+        y>H+100
+    ) return;
+
+
+    const size =
+        flor.size*
+        depth;
+
+
+    ctx.save();
+
+    ctx.translate(x,y);
+
+    ctx.rotate(
+        flor.rotation+
+        Math.sin(tiempo*.0005)*.08
+    );
+
+
+    /* RESPLANDOR */
+
+    ctx.shadowBlur =
+        12*depth;
+
+    ctx.shadowColor =
+        "rgba(255,190,20,.9)";
+
+
+    /* PÉTALOS */
+
+    for(let i=0;i<6;i++){
+
+        ctx.rotate(Math.PI/3);
+
+        ctx.beginPath();
+
+        ctx.ellipse(
+            0,
+            size*.65,
+            size*.35,
+            size,
+            0,
+            0,
+            Math.PI*2
+        );
+
+        ctx.fillStyle =
+            flor.type>.5
+            ? "rgba(255,215,30,.9)"
+            : "rgba(255,195,15,.9)";
+
+        ctx.fill();
+
+    }
+
+
+    /* CENTRO */
+
+    ctx.shadowBlur=5;
+
+    ctx.beginPath();
+
+    ctx.arc(
+        0,
+        0,
+        size*.30,
+        0,
+        Math.PI*2
+    );
+
+    ctx.fillStyle="#855000";
+
+    ctx.fill();
+
+
+    ctx.restore();
+
+}
+
+
+/* =========================================================
+   FONDO
+========================================================= */
+
+function dibujarFondo(){
+
+    ctx.fillStyle="#000";
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+
+    /* LUZ CENTRAL */
+
+    const centro =
+        ctx.createRadialGradient(
+            W*.5,
+            H*.5,
+            0,
+            W*.5,
+            H*.5,
+            Math.max(W,H)*.75
+        );
+
+    centro.addColorStop(
+        0,
+        "rgba(55,12,85,.32)"
+    );
+
+    centro.addColorStop(
+        .35,
+        "rgba(25,5,45,.18)"
+    );
+
+    centro.addColorStop(
+        .7,
+        "rgba(8,2,15,.08)"
+    );
+
+    centro.addColorStop(
+        1,
+        "rgba(0,0,0,0)"
+    );
+
+    ctx.fillStyle=centro;
+
+    ctx.fillRect(
+        0,
+        0,
+        W,
+        H
+    );
+
+
+    dibujarNebulosa();
+
+}
+
+
+/* =========================================================
+   INICIAR
+========================================================= */
+
+async function iniciar(){
+
+    if(iniciado) return;
+
+    iniciado=true;
+
+
+    try{
+
+        musica.volume=.75;
+
+        await musica.play();
+
+        musicaActiva=true;
+
+        musicaBoton.textContent="♪";
+
+    }catch(error){
+
+        console.log(
+            "El navegador bloqueó el audio:",
+            error
+        );
+
+    }
+
+
+    inicio.classList.add("oculto");
+
+    setTimeout(()=>{
+
+        instruccion.classList.add("visible");
+
+        musicaBoton.classList.add("visible");
+
+    },1200);
+
+}
+
+
+/* =========================================================
+   CLICK INICIAL
+========================================================= */
+
+inicio.addEventListener(
+    "click",
+    iniciar
+);
+
+inicio.addEventListener(
+    "touchstart",
+    iniciar,
+    {passive:true}
+);
+
+
+/* =========================================================
+   CONTROL DE MÚSICA
+========================================================= */
+
+musicaBoton.addEventListener(
+    "click",
+    async()=>{
+
+        if(musica.paused){
+
+            try{
 
                 await musica.play();
 
-            } catch (error) {
+                musicaActiva=true;
 
-                console.log(
-                    "El navegador bloqueó el audio:",
-                    error
-                );
+                musicaBoton.textContent="♪";
+
+            }catch(error){
+
+                console.log(error);
 
             }
 
-            pantallaInicio.classList.add("oculto");
+        }else{
 
-            setTimeout(function() {
+            musica.pause();
 
-                pantallaInicio.style.display = "none";
+            musicaActiva=false;
 
-            }, 1600);
+            musicaBoton.textContent="Ⅱ";
 
         }
 
+    }
+);
 
-        pantallaInicio.addEventListener(
-            "click",
-            iniciarExperiencia
-        );
 
-        pantallaInicio.addEventListener(
-            "touchstart",
-            iniciarExperiencia,
-            { passive: true }
-        );
+/* =========================================================
+   ANIMACIÓN PRINCIPAL
+========================================================= */
 
+function animar(){
 
-        /*
-        ==========================================
-        FONDO
-        ==========================================
-        */
+    tiempo=performance.now();
 
-        function dibujarFondo() {
 
-            const gradiente =
-                ctx.createRadialGradient(
-                    ancho * 0.5,
-                    alto * 0.5,
-                    0,
-                    ancho * 0.5,
-                    alto * 0.5,
-                    Math.max(ancho, alto) * 0.8
-                );
+    camX +=
+        (targetCamX-camX)*.035;
 
-            gradiente.addColorStop(
-                0,
-                "rgba(48,12,75,.32)"
-            );
+    camY +=
+        (targetCamY-camY)*.035;
 
-            gradiente.addColorStop(
-                0.35,
-                "rgba(24,5,45,.18)"
-            );
 
-            gradiente.addColorStop(
-                0.7,
-                "rgba(7,2,15,.1)"
-            );
+    dibujarFondo();
 
-            gradiente.addColorStop(
-                1,
-                "rgba(0,0,0,0)"
-            );
+    dibujarEstrellas();
 
-            ctx.fillStyle = gradiente;
+    dibujarPolvo();
 
-            ctx.fillRect(
-                0,
-                0,
-                ancho,
-                alto
-            );
+    dibujarAgujeroNegro();
 
 
-            /*
-            Nebulosa lateral
-            */
+    /* FLORES */
 
-            const nube =
-                ctx.createRadialGradient(
-                    ancho * 0.22,
-                    alto * 0.35,
-                    0,
-                    ancho * 0.22,
-                    alto * 0.35,
-                    ancho * 0.55
-                );
+    for(const flor of flores){
 
-            nube.addColorStop(
-                0,
-                "rgba(126,36,180,.12)"
-            );
+        dibujarFlor(flor);
 
-            nube.addColorStop(
-                0.5,
-                "rgba(72,15,120,.06)"
-            );
+    }
 
-            nube.addColorStop(
-                1,
-                "rgba(0,0,0,0)"
-            );
 
-            ctx.fillStyle = nube;
+    requestAnimationFrame(animar);
 
-            ctx.fillRect(
-                0,
-                0,
-                ancho,
-                alto
-            );
-        }
+}
 
 
-        /*
-        ==========================================
-        ESTRELLAS
-        ==========================================
-        */
+animar();
 
-        function dibujarEstrellas() {
-
-            for (const estrella of estrellas) {
-
-                estrella.y +=
-                    estrella.velocidad;
-
-                if (estrella.y > 1) {
-
-                    estrella.y = 0;
-
-                    estrella.x =
-                        Math.random();
-
-                }
-
-                let x =
-                    estrella.x * ancho;
-
-                let y =
-                    estrella.y * alto;
-
-
-                /*
-                Movimiento de cámara
-                */
-
-                x +=
-                    camaraX *
-                    80 *
-                    estrella.profundidad;
-
-                y +=
-                    camaraY *
-                    50 *
-                    estrella.profundidad;
-
-
-                /*
-                Mantener estrellas en pantalla
-                */
-
-                x =
-                    ((x % ancho) + ancho) % ancho;
-
-                y =
-                    ((y % alto) + alto) % alto;
-
-
-                const parpadeo =
-                    Math.sin(
-                        tiempo * 0.002 +
-                        estrella.x * 30
-                    ) * 0.25;
-
-
-                ctx.beginPath();
-
-                ctx.arc(
-                    x,
-                    y,
-                    estrella.tamaño,
-                    0,
-                    Math.PI * 2
-                );
-
-                ctx.fillStyle =
-                    `rgba(255,255,255,${
-                        Math.max(
-                            0.1,
-                            estrella.brillo + parpadeo
-                        )
-                    })`;
-
-                ctx.fill();
-
-            }
-        }
-
-
-        /*
-        ==========================================
-        PARTÍCULAS MORADAS
-        ==========================================
-        */
-
-        function dibujarParticulas() {
-
-            const centroX =
-                ancho / 2 +
-                camaraX * 80;
-
-            const centroY =
-                alto / 2 +
-                camaraY * 45;
-
-
-            for (const p of particulas) {
-
-                p.angulo +=
-                    p.velocidad;
-
-                const radio =
-                    p.radio;
-
-                const x =
-                    centroX +
-                    Math.cos(p.angulo) *
-                    radio;
-
-                const y =
-                    centroY +
-                    Math.sin(p.angulo) *
-                    radio *
-                    0.32 +
-                    p.altura * 80;
-
-                if (
-                    x < -20 ||
-                    x > ancho + 20 ||
-                    y < -20 ||
-                    y > alto + 20
-                ) {
-                    continue;
-                }
-
-                ctx.beginPath();
-
-                ctx.arc(
-                    x,
-                    y,
-                    p.tamaño,
-                    0,
-                    Math.PI * 2
-                );
-
-                ctx.fillStyle =
-                    "rgba(188,91,255,.55)";
-
-                ctx.fill();
-
-            }
-        }
-
-
-        /*
-        ==========================================
-        AGUJERO NEGRO
-        ==========================================
-        */
-
-        function dibujarAgujeroNegro() {
-
-            const cx =
-                ancho / 2 +
-                camaraX * 75;
-
-            const cy =
-                alto / 2 +
-                camaraY * 45;
-
-
-            /*
-            Halo exterior
-            */
-
-            const halo =
-                ctx.createRadialGradient(
-                    cx,
-                    cy,
-                    30,
-                    cx,
-                    cy,
-                    330
-                );
-
-            halo.addColorStop(
-                0,
-                "rgba(174,64,255,.28)"
-            );
-
-            halo.addColorStop(
-                0.25,
-                "rgba(112,38,180,.18)"
-            );
-
-            halo.addColorStop(
-                0.55,
-                "rgba(71,17,110,.08)"
-            );
-
-            halo.addColorStop(
-                1,
-                "rgba(0,0,0,0)"
-            );
-
-            ctx.fillStyle = halo;
-
-            ctx.beginPath();
-
-            ctx.arc(
-                cx,
-                cy,
-                330,
-                0,
-                Math.PI * 2
-            );
-
-            ctx.fill();
-
-
-            /*
-            Disco de acreción
-            */
-
-            ctx.save();
-
-            ctx.translate(cx, cy);
-
-            ctx.rotate(
-                tiempo * 0.00025
-            );
-
-            ctx.scale(
-                1,
-                0.32
-            );
-
-
-            const disco =
-                ctx.createRadialGradient(
-                    0,
-                    0,
-                    20,
-                    0,
-                    0,
-                    240
-                );
-
-            disco.addColorStop(
-                0,
-                "rgba(0,0,0,1)"
-            );
-
-            disco.addColorStop(
-                0.28,
-                "rgba(255,170,70,.8)"
-            );
-
-            disco.addColorStop(
-                0.45,
-                "rgba(183,69,255,.65)"
-            );
-
-            disco.addColorStop(
-                0.68,
-                "rgba(89,26,140,.22)"
-            );
-
-            disco.addColorStop(
-                1,
-                "rgba(0,0,0,0)"
-            );
-
-            ctx.fillStyle = disco;
-
-            ctx.beginPath();
-
-            ctx.arc(
-                0,
-                0,
-                240,
-                0,
-                Math.PI * 2
-            );
-
-            ctx.fill();
-
-            ctx.restore();
-
-
-            /*
-            Núcleo
-            */
-
-            const negro =
-                ctx.createRadialGradient(
-                    cx - 15,
-                    cy - 15,
-                    0,
-                    cx,
-                    cy,
-                    125
-                );
-
-            negro.addColorStop(
-                0,
-                "#000000"
-            );
-
-            negro.addColorStop(
-                0.7,
-                "#000000"
-            );
-
-            negro.addColorStop(
-                0.9,
-                "rgba(0,0,0,.96)"
-            );
-
-            negro.addColorStop(
-                1,
-                "rgba(0,0,0,0)"
-            );
-
-            ctx.fillStyle = negro;
-
-            ctx.beginPath();
-
-            ctx.arc(
-                cx,
-                cy,
-                125,
-                0,
-                Math.PI * 2
-            );
-
-            ctx.fill();
-
-
-            /*
-            Anillo morado
-            */
-
-            ctx.beginPath();
-
-            ctx.arc(
-                cx,
-                cy,
-                110,
-                0,
-                Math.PI * 2
-            );
-
-            ctx.strokeStyle =
-                "rgba(192,91,255,.25)";
-
-            ctx.lineWidth = 2;
-
-            ctx.shadowBlur = 25;
-
-            ctx.shadowColor =
-                "rgba(181,76,255,.7)";
-
-            ctx.stroke();
-
-            ctx.shadowBlur = 0;
-
-        }
-
-
-        /*
-        ==========================================
-        FLORES
-        ==========================================
-        */
-
-        function dibujarFlor(flor) {
-
-            flor.y -=
-                flor.velocidad;
-
-            if (flor.y < -0.15) {
-
-                flor.y = 1.15;
-
-                flor.x =
-                    Math.random();
-
-            }
-
-
-            const movimientoX =
-                Math.sin(
-                    tiempo * 0.001 +
-                    flor.balance
-                ) * 18;
-
-            const movimientoY =
-                Math.cos(
-                    tiempo * 0.0012 +
-                    flor.balance
-                ) * 12;
-
-
-            let x =
-                flor.x * ancho +
-                movimientoX +
-                camaraX *
-                100 *
-                flor.profundidad;
-
-            let y =
-                flor.y * alto +
-                movimientoY +
-                camaraY *
-                70 *
-                flor.profundidad;
-
-
-            /*
-            Si está fuera de pantalla
-            no dibujamos
-            */
-
-            if (
-                x < -100 ||
-                x > ancho + 100 ||
-                y < -100 ||
-                y > alto + 100
-            ) {
-                return;
-            }
-
-
-            ctx.save();
-
-            ctx.translate(
-                x,
-                y
-            );
-
-            ctx.rotate(
-                flor.rotacion +
-                tiempo * 0.0002
-            );
-
-
-            /*
-            Pétalos
-            */
-
-            for (let i = 0; i < 6; i++) {
-
-                ctx.rotate(
-                    Math.PI / 3
-                );
-
-                ctx.beginPath();
-
-                ctx.ellipse(
-                    0,
-                    flor.tamaño * 0.72,
-                    flor.tamaño * 0.42,
-                    flor.tamaño,
-                    0,
-                    0,
-                    Math.PI * 2
-                );
-
-                ctx.fillStyle =
-                    "rgba(255,210,25,.9)";
-
-                ctx.shadowBlur = 18;
-
-                ctx.shadowColor =
-                    "rgba(255,190,0,.8)";
-
-                ctx.fill();
-
-            }
-
-
-            /*
-            Centro
-            */
-
-            ctx.shadowBlur = 5;
-
-            ctx.beginPath();
-
-            ctx.arc(
-                0,
-                0,
-                flor.tamaño * 0.32,
-                0,
-                Math.PI * 2
-            );
-
-            ctx.fillStyle =
-                "#8a5200";
-
-            ctx.fill();
-
-
-            ctx.restore();
-
-        }
-
-
-        /*
-        ==========================================
-        ANIMACIÓN
-        ==========================================
-        */
-
-        function animar() {
-
-            tiempo =
-                performance.now();
-
-
-            /*
-            Movimiento suave
-            */
-
-            camaraX +=
-                (objetivoX - camaraX) *
-                0.035;
-
-            camaraY +=
-                (objetivoY - camaraY) *
-                0.035;
-
-
-            /*
-            Fondo negro
-            */
-
-            ctx.fillStyle = "#000000";
-
-            ctx.fillRect(
-                0,
-                0,
-                ancho,
-                alto
-            );
-
-
-            dibujarFondo();
-
-            dibujarEstrellas();
-
-            dibujarParticulas();
-
-            dibujarAgujeroNegro();
-
-
-            /*
-            Flores
-            */
-
-            for (const flor of flores) {
-
-                dibujarFlor(flor);
-
-            }
-
-
-            requestAnimationFrame(
-                animar
-            );
-        }
-
-
-        /*
-        ==========================================
-        INICIAR ANIMACIÓN
-        ==========================================
-        */
-
-        animar();
-
-    </script>
+</script>
 
 </body>
 </html>
